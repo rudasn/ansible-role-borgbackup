@@ -6,6 +6,8 @@ borgmatic_failure_command:
   - echo "`date` - Error while creating a backup."
 borgmatic_before_backup_command: []
 borgmatic_after_backup_command: []
+borgmatic_cron_hour: "{{ 6 | random }}"
+borgmatic_cron_minute: "{{ 59 | random }}"
 borg_one_file_system: true
 borg_exclude_from: []
 borg_encryption_passcommand: false

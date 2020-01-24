@@ -1,6 +1,6 @@
 ---
-- include_vars: '{{ ansible_pkg_mgr }}.yml'
-- include: "{{ ansible_pkg_mgr }}.yml"
+- include_vars: "{{ ansible_pkg_mgr }}.yml"
+- include_tasks: "{{ ansible_pkg_mgr }}.yml"
 
 - name: Install required System Packages
   package:
@@ -16,21 +16,10 @@
 
 - name: Install required Python Packages
   pip:
-    name: "{{ item }}"
+    name: "{{ borg_python_packages }}"
+    state: latest
     executable: "{{ pip_bin }}"
-  with_items: "{{ borg_python_packages }}"
 
-- name: Ensure root has SSH key.
-  user:
-    name: "root"
-    generate_ssh_key: yes
-    ssh_key_file: .ssh/id_ed25519
-    ssh_key_type: ed25519
-  register: root_user
-
-- debug:
-    var: root_user['ssh_public_key']
-    
 - name: Create new repository for server
   borgbase:
     repository_name: "{{ bb_repo_name }}"
@@ -46,7 +35,7 @@
   become: no
   register: repo_creation
   when: create_repo
- 
+
 - name: Set Repository Fact
   set_fact:
     borg_repository: "{{ repo_creation['data']['repoPath'] }}"
@@ -73,8 +62,8 @@
   block:
     - cron:
         name: "borgmatic"
-        hour: "{{ 6 |random }}"
-        minute: "{{ 59 |random }}"
+        hour: "{{ borgmatic_cron_hour }}"
+        minute: "{{ borgmatic_cron_minute }}"
         user: "root"
         cron_file: borgmatic
         job: "/usr/local/bin/borgmatic --create --prune"
@@ -92,8 +81,8 @@
   block:
     - cron:
         name: "borgmatic"
-        hour: "{{ 6 | random }}"
-        minute: "{{ 59 | random }}"
+        hour: "{{ borgmatic_cron_hour }}"
+        minute: "{{ borgmatic_cron_minute }}"
         user: "root"
         cron_file: borgmatic
         job: "/usr/local/bin/borgmatic"
